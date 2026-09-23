@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/", "destination": "/WebRouter site option 1.html" }]
+}
