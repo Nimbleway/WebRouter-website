@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/WebRouter site option 1.html"
+      "destination": "/WebRouter site option 1"
     },
     {
       "source": "/option-2",
-      "destination": "/WebRouter site option 2.html"
+      "destination": "/WebRouter site option 2"
     }
   ],
   "cleanUrls": true
