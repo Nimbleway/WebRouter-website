@@ -197,6 +197,47 @@
     .hop { margin-top: 24px; }
   }
 
+  /* install */
+  .install { width: min(560px, 100%); min-width: 0; margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; text-align: left; font-family: var(--mono); }
+  .install-tabs { display: flex; gap: 20px; }
+  .install-tabs button {
+    font: 500 14px/1 var(--mono); color: var(--muted);
+    background: none; border: 0; padding: 0 2px 8px; cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .install-tabs button:hover { color: var(--ink); }
+  .install-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--lime-edge); }
+  .term {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 22px;
+    background: #17141B; color: #EEEAF0;
+    border-radius: 2px;
+    font-size: 15px;
+  }
+  .term .c { position: absolute; width: 9px; height: 9px; border: 0 solid var(--accent-text); }
+  .term .c:nth-of-type(1) { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .term .c:nth-of-type(2) { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .term .c:nth-of-type(3) { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .term .c:nth-of-type(4) { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+  .term code { font: inherit; min-width: 0; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .term code::before { content: "$ "; color: #B9DC8C; }
+  .copy {
+    flex: none; font: 12px/1 var(--mono); color: #A89FAF;
+    background: none; border: 0; padding: 4px; cursor: pointer;
+  }
+  .copy:hover { color: #EEEAF0; }
+  .agent-setup {
+    justify-self: start; display: inline-flex; align-items: center; gap: 8px;
+    font: 14px/1 var(--mono); color: var(--accent-text);
+    background: none; border: 0; padding: 2px 0; cursor: pointer;
+    text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px;
+    transition: text-decoration-color 150ms;
+  }
+  .agent-setup:hover { text-decoration-color: currentColor; }
+  .agent-setup svg { width: 14px; height: 14px; }
+  @media (max-width: 520px) { .term { font-size: 13px; padding: 18px 16px; } }
+
   /* benefits */
   .benefits { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
   .benefit { border-top: 2px solid var(--ink); padding-top: 22px; display: grid; gap: 10px; align-content: start; }
@@ -274,6 +315,22 @@
       <svg class="zaps" id="zaps" aria-hidden="true"></svg>
       <div class="belt"><ul class="belt-track" id="belt"></ul></div>
     </figure>
+    <div class="install" id="install">
+      <div class="install-tabs" role="tablist" aria-label="Install WebRouter">
+        <button type="button" role="tab" aria-selected="true" data-lang="typescript">typescript</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="python">python</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="go">go</button>
+      </div>
+      <div class="term" role="tabpanel">
+        <span class="c"></span><span class="c"></span><span class="c"></span><span class="c"></span>
+        <code id="install-cmd">npm install @webrouter/sdk</code>
+        <button type="button" class="copy" id="install-copy">copy</button>
+      </div>
+      <button type="button" class="agent-setup" id="agent-setup">
+        setup for agents
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>
+      </button>
+    </div>
   </header>
 
   <section aria-labelledby="problem-h">
@@ -451,5 +508,55 @@
     }
 
     setInterval(() => { if (visible && !document.hidden) fire(); }, 950);
+  })();
+</script>
+
+<script>
+  (() => {
+    const CMDS = {
+      typescript: "npm install @webrouter/sdk",
+      python: "pip install webrouter",
+      go: "go get github.com/webrouter/webrouter-go",
+    };
+    const AGENT_SETUP = `Set up WebRouter for web search in this project.
+1. Install the SDK for this project's language (npm install @webrouter/sdk, pip install webrouter, or go get github.com/webrouter/webrouter-go).
+2. Read WEBROUTER_API_KEY from the environment.
+3. Route every web search, page fetch, crawl, browser action and deep research call through webrouter.search(), webrouter.fetch(), webrouter.crawl(), webrouter.browse() and webrouter.research().
+4. Use the default routing unless the user asks for specific providers.`;
+    const tabs = document.querySelectorAll(".install-tabs [role=tab]");
+    const cmd = document.getElementById("install-cmd");
+
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+      cmd.textContent = CMDS[tab.dataset.lang];
+    }));
+
+    // falls back to a hidden textarea where the async clipboard API is blocked
+    function writeClipboard(text) {
+      return (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {
+        const ta = Object.assign(document.createElement("textarea"), { value: text });
+        ta.style.cssText = "position:fixed;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        if (!ok) throw new Error("copy failed");
+      });
+    }
+    function copy(text, btn, label, done) {
+      writeClipboard(text).then(() => {
+        label(done);
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => label(null), 1400);
+      }).catch(() => {});
+    }
+    const copyBtn = document.getElementById("install-copy");
+    copyBtn.addEventListener("click", () =>
+      copy(cmd.textContent, copyBtn, (t) => (copyBtn.textContent = t || "copy"), "copied"));
+
+    const setup = document.getElementById("agent-setup");
+    const setupText = setup.firstChild;
+    setup.addEventListener("click", () =>
+      copy(AGENT_SETUP, setup, (t) => (setupText.textContent = t ? `\n        ${t}\n        ` : "\n        setup for agents\n        "), "copied setup prompt"));
   })();
 </script>
