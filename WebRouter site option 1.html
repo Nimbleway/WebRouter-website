@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WebRouter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,14 +73,32 @@
   }
 
   /* nav */
-  nav { padding-block: 22px; display: flex; align-items: center; }
+  nav { padding-block: 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; font-size: 15px; font-weight: 500; }
+  .nav-links a { text-decoration: none; color: var(--muted); transition: color 150ms; }
+  .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--ink); }
+  .nav-links .gh {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
+    color: var(--ink); background: var(--surface);
+  }
+  .nav-links .gh:hover { border-color: var(--muted); }
+  .nav-links .gh svg { width: 16px; height: 16px; }
+  @media (max-width: 520px) {
+    nav { flex-wrap: wrap; column-gap: 10px; row-gap: 10px; }
+    nav .wordmark { font-size: 14px; }
+    .nav-links { gap: 9px; font-size: 13px; }
+    .nav-links .gh { padding: 5px 8px; }
+    .nav-links .gh span { display: none; }
+  }
   .wordmark { font-family: var(--mono); font-weight: 500; font-size: 16px; text-decoration: none; }
   .wordmark span { color: var(--muted); }
 
   /* hero */
-  .hero { padding-block: 72px 96px; display: grid; gap: 28px; }
+  .hero { padding-block: 72px 96px; display: grid; gap: 28px; text-align: center; justify-items: center; }
   .hero h1 {
-    font-size: clamp(44px, 8vw, 96px);
+    font-size: clamp(34px, 5.4vw, 64px);
+    justify-items: center;
     line-height: 0.98;
     font-weight: 700;
     display: grid;
@@ -86,7 +108,7 @@
     color: var(--on-lime);
     padding: 0 0.12em;
     border-radius: 0.12em;
-    justify-self: start;
+    justify-self: center;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
   }
@@ -99,6 +121,122 @@
 
   /* problem → solution */
   .easy { margin-top: 64px; }
+
+  /* agent → provider motion */
+  .router { position: relative; min-width: 0; width: 100%; margin: 20px 0 0; padding-top: 4px; }
+  .agent {
+    position: relative; z-index: 2;
+    width: max-content; margin-inline: auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px 10px 10px;
+    background: var(--ink); color: var(--bg);
+    border-radius: 999px;
+    font: 600 15px/1 var(--body);
+    box-shadow: 0 12px 30px -14px rgba(31, 26, 36, 0.55);
+  }
+  .agent-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--lime); color: var(--on-lime);
+    display: grid; place-items: center;
+  }
+  .agent-icon svg { width: 24px; height: 24px; }
+  .agent.firing .agent-icon { animation: agent-pulse 420ms ease-out; }
+  @keyframes agent-pulse {
+    0% { box-shadow: 0 0 0 0 var(--lime-edge); }
+    100% { box-shadow: 0 0 0 12px transparent; }
+  }
+  .hop {
+    position: relative; z-index: 2;
+    width: max-content; margin: 64px auto 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 18px;
+    background: var(--lime); color: var(--on-lime);
+    border: 1px solid var(--lime-edge);
+    border-radius: 12px;
+    font: 500 16px/1 var(--mono);
+  }
+  .hop span { opacity: 0.55; }
+  .hop.firing { animation: hop-pulse 420ms ease-out; }
+  @keyframes hop-pulse {
+    0% { box-shadow: 0 0 0 0 var(--lime-edge); }
+    100% { box-shadow: 0 0 0 12px transparent; }
+  }
+  .zaps { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
+  .zaps .glow { fill: none; stroke: var(--lime-edge); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: 0.45; }
+  .zaps .bolt { fill: none; stroke: var(--accent-text); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: miter; }
+  .belt {
+    margin-top: 88px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .belt-track {
+    display: flex; gap: 12px; width: max-content;
+    list-style: none; margin: 0; padding: 10px 0;
+    animation: belt 70s linear infinite;
+  }
+  @keyframes belt { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+  .belt-track li {
+    flex: none;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px 10px 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-weight: 500; font-size: 15px; white-space: nowrap;
+    transition: background 400ms, border-color 400ms, transform 400ms;
+  }
+  .belt-track li.hit { background: var(--lime); color: var(--on-lime); border-color: var(--lime-edge); transform: translateY(-3px); transition-duration: 120ms; }
+  .belt-track .mark { flex: none; width: 32px; height: 32px; border-radius: 8px; background: var(--tile); display: grid; place-items: center; overflow: hidden; }
+  .belt-track img { width: 22px; height: 22px; object-fit: contain; }
+  @media (max-width: 860px) { .hop { margin-top: 52px; } .belt { margin-top: 72px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .belt-track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; }
+    .belt-track li[aria-hidden="true"] { display: none; }
+    .belt { -webkit-mask-image: none; mask-image: none; margin-top: 32px; }
+    .hop { margin-top: 24px; }
+  }
+
+  /* install */
+  .install { width: min(560px, 100%); min-width: 0; margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; text-align: left; font-family: var(--mono); }
+  .install-tabs { display: flex; gap: 20px; }
+  .install-tabs button {
+    font: 500 14px/1 var(--mono); color: var(--muted);
+    background: none; border: 0; padding: 0 2px 8px; cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .install-tabs button:hover { color: var(--ink); }
+  .install-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--lime-edge); }
+  .term {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 22px;
+    background: #17141B; color: #EEEAF0;
+    border-radius: 2px;
+    font-size: 15px;
+  }
+  .term .c { position: absolute; width: 9px; height: 9px; border: 0 solid var(--accent-text); }
+  .term .c:nth-of-type(1) { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .term .c:nth-of-type(2) { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .term .c:nth-of-type(3) { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .term .c:nth-of-type(4) { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+  .term code { font: inherit; min-width: 0; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .term code::before { content: "$ "; color: #B9DC8C; }
+  .copy {
+    flex: none; font: 12px/1 var(--mono); color: #A89FAF;
+    background: none; border: 0; padding: 4px; cursor: pointer;
+  }
+  .copy:hover { color: #EEEAF0; }
+  .agent-setup {
+    justify-self: start; display: inline-flex; align-items: center; gap: 8px;
+    font: 14px/1 var(--mono); color: var(--accent-text);
+    background: none; border: 0; padding: 2px 0; cursor: pointer;
+    text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px;
+    transition: text-decoration-color 150ms;
+  }
+  .agent-setup:hover { text-decoration-color: currentColor; }
+  .agent-setup svg { width: 14px; height: 14px; }
+  @media (max-width: 520px) { .term { font-size: 13px; padding: 18px 16px; } }
 
   /* benefits */
   .benefits { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
@@ -149,8 +287,15 @@
 </style>
 
 <div class="wrap">
-  <nav>
+  <nav aria-label="Main">
     <a class="wordmark" href="#top">web<span>/</span>router</a>
+    <ul class="nav-links">
+      <li><a href="/docs">Docs</a></li>
+      <li><a href="/evals">Evals</a></li>
+      <li><a href="/changelog">Changelog</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a class="gh" href="#" aria-label="GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a></li>
+    </ul>
   </nav>
 
   <header class="hero" id="top">
@@ -159,6 +304,33 @@
       <mark>web search expert</mark>
     </h1>
     <p class="sub">WebRouter is a single, open standard for agents to search the web, retrieve data, crawl sites, run browser actions, and execute deep research.</p>
+    <figure class="router" id="router" aria-label="Your agent sends each request to WebRouter, which routes it to the best web search provider">
+      <div class="agent" id="agent">
+        <span class="agent-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><circle cx="12" cy="2.6" r="0.9" fill="currentColor"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M2 11v3M22 11v3M9.5 21h5"/></svg>
+        </span>
+        Your agent
+      </div>
+      <div class="hop" id="hop" aria-hidden="true">web<span>/</span>router</div>
+      <svg class="zaps" id="zaps" aria-hidden="true"></svg>
+      <div class="belt"><ul class="belt-track" id="belt"></ul></div>
+    </figure>
+    <div class="install" id="install">
+      <div class="install-tabs" role="tablist" aria-label="Install WebRouter">
+        <button type="button" role="tab" aria-selected="true" data-lang="typescript">typescript</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="python">python</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="go">go</button>
+      </div>
+      <div class="term" role="tabpanel">
+        <span class="c"></span><span class="c"></span><span class="c"></span><span class="c"></span>
+        <code id="install-cmd">npm install @webrouter/sdk</code>
+        <button type="button" class="copy" id="install-copy">copy</button>
+      </div>
+      <button type="button" class="agent-setup" id="agent-setup">
+        setup for agents
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>
+      </button>
+    </div>
   </header>
 
   <section aria-labelledby="problem-h">
@@ -214,3 +386,165 @@
   <footer>WebRouter is open source.</footer>
 </div>
 
+<script>
+  (() => {
+    const LOGOS = [
+      ["nimble.png", "Nimble"], ["exa.svg", "Exa"], ["tavily.png", "Tavily"],
+      ["browserbase.png", "Browserbase"], ["perplexity.png", "Perplexity"], ["tinyfish.png", "TinyFish"],
+      ["firecrawl.png", "Firecrawl"], ["you.svg", "You.com"], ["linkup.png", "Linkup"],
+      ["parallel.png", "Parallel"], ["brave.png", "Brave Search"],
+    ];
+    const belt = document.getElementById("belt");
+    const router = document.getElementById("router");
+    const agent = document.getElementById("agent");
+    const hop = document.getElementById("hop");
+    const zaps = document.getElementById("zaps");
+    const NS = "http://www.w3.org/2000/svg";
+
+    // two copies so the loop is seamless; the second is hidden from screen readers
+    for (let copy = 0; copy < 2; copy++) {
+      for (const [file, name] of LOGOS) {
+        const li = document.createElement("li");
+        if (copy) li.setAttribute("aria-hidden", "true");
+        li.innerHTML = `<span class="mark"><img src="logos/${file}" alt=""></span>${name}`;
+        belt.appendChild(li);
+      }
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const tiles = [...belt.children];
+    const lastHit = new Map();
+    let visible = true;
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(router);
+
+    function pick() {
+      const box = router.getBoundingClientRect();
+      const lo = box.left + box.width * 0.14, hi = box.right - box.width * 0.14;
+      const now = performance.now();
+      const pool = tiles.filter((t) => {
+        const r = t.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        return cx > lo && cx < hi && now - (lastHit.get(t) || 0) > 2500;
+      });
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const pulse = (el) => { el.classList.remove("firing"); void el.offsetWidth; el.classList.add("firing"); };
+
+    // one jagged bolt from `from`'s bottom edge to `to`'s top edge, drawn over `draw` ms
+    function bolt(from, to, draw, onStrike) {
+      const jitter = Array.from({ length: 4 }, (_, i) => (i % 2 ? 1 : -1) * (7 + Math.random() * 10));
+      const glow = document.createElementNS(NS, "polyline");
+      const line = document.createElementNS(NS, "polyline");
+      glow.setAttribute("class", "glow");
+      line.setAttribute("class", "bolt");
+      zaps.append(glow, line);
+      const HOLD = 200, FADE = 320, t0 = performance.now();
+      let struck = false;
+      (function frame(now) {
+        const base = router.getBoundingClientRect();
+        const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+        const x0 = a.left + a.width / 2 - base.left, y0 = a.bottom - base.top;
+        const x1 = b.left + b.width / 2 - base.left, y1 = b.top - base.top;
+        const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1;
+        const n = jitter.length + 1;
+        const pts = [[x0, y0]];
+        for (let i = 1; i < n; i++) {
+          const f = i / n;
+          pts.push([x0 + dx * f + (-dy / len) * jitter[i - 1], y0 + dy * f + (dx / len) * jitter[i - 1]]);
+        }
+        pts.push([x1, y1]);
+        const el = now - t0;
+        const k = Math.min(1, el / draw);
+        // reveal from the source toward the target
+        const shown = [pts[0]];
+        const segs = pts.length - 1, reach = k * segs;
+        for (let i = 1; i <= segs; i++) {
+          if (i <= reach) shown.push(pts[i]);
+          else {
+            const f = reach - (i - 1), [px, py] = pts[i - 1], [qx, qy] = pts[i];
+            if (f > 0) shown.push([px + (qx - px) * f, py + (qy - py) * f]);
+            break;
+          }
+        }
+        const attr = shown.map((p) => p.join(",")).join(" ");
+        glow.setAttribute("points", attr);
+        line.setAttribute("points", attr);
+        if (k === 1 && !struck) { struck = true; onStrike && onStrike(); }
+        const fade = Math.max(0, el - draw - HOLD) / FADE;
+        glow.style.opacity = 0.45 * (1 - fade);
+        line.style.opacity = 1 - fade;
+        if (fade < 1) requestAnimationFrame(frame);
+        else { glow.remove(); line.remove(); }
+      })(t0);
+    }
+
+    function fire() {
+      const tile = pick();
+      if (!tile) return;
+      lastHit.set(tile, performance.now());
+      pulse(agent);
+      // agent → WebRouter, then WebRouter → the tool it picked
+      bolt(agent, hop, 170, () => {
+        pulse(hop);
+        bolt(hop, tile, 230, () => {
+          tile.classList.add("hit");
+          setTimeout(() => tile.classList.remove("hit"), 650);
+        });
+      });
+    }
+
+    setInterval(() => { if (visible && !document.hidden) fire(); }, 950);
+  })();
+</script>
+
+<script>
+  (() => {
+    const CMDS = {
+      typescript: "npm install @webrouter/sdk",
+      python: "pip install webrouter",
+      go: "go get github.com/webrouter/webrouter-go",
+    };
+    const AGENT_SETUP = `Set up WebRouter for web search in this project.
+1. Install the SDK for this project's language (npm install @webrouter/sdk, pip install webrouter, or go get github.com/webrouter/webrouter-go).
+2. Read WEBROUTER_API_KEY from the environment.
+3. Route every web search, page fetch, crawl, browser action and deep research call through webrouter.search(), webrouter.fetch(), webrouter.crawl(), webrouter.browse() and webrouter.research().
+4. Use the default routing unless the user asks for specific providers.`;
+    const tabs = document.querySelectorAll(".install-tabs [role=tab]");
+    const cmd = document.getElementById("install-cmd");
+
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+      cmd.textContent = CMDS[tab.dataset.lang];
+    }));
+
+    // falls back to a hidden textarea where the async clipboard API is blocked
+    function writeClipboard(text) {
+      return (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {
+        const ta = Object.assign(document.createElement("textarea"), { value: text });
+        ta.style.cssText = "position:fixed;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        if (!ok) throw new Error("copy failed");
+      });
+    }
+    function copy(text, btn, label, done) {
+      writeClipboard(text).then(() => {
+        label(done);
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => label(null), 1400);
+      }).catch(() => {});
+    }
+    const copyBtn = document.getElementById("install-copy");
+    copyBtn.addEventListener("click", () =>
+      copy(cmd.textContent, copyBtn, (t) => (copyBtn.textContent = t || "copy"), "copied"));
+
+    const setup = document.getElementById("agent-setup");
+    const setupText = setup.firstChild;
+    setup.addEventListener("click", () =>
+      copy(AGENT_SETUP, setup, (t) => (setupText.textContent = t ? `\n        ${t}\n        ` : "\n        setup for agents\n        "), "copied setup prompt"));
+  })();
+</script>
