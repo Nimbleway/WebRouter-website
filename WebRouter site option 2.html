@@ -127,11 +127,27 @@
     0% { box-shadow: 0 0 0 0 var(--lime-edge); }
     100% { box-shadow: 0 0 0 12px transparent; }
   }
+  .hop {
+    position: relative; z-index: 2;
+    width: max-content; margin: 64px auto 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 18px;
+    background: var(--lime); color: var(--on-lime);
+    border: 1px solid var(--lime-edge);
+    border-radius: 12px;
+    font: 500 16px/1 var(--mono);
+  }
+  .hop span { opacity: 0.55; }
+  .hop.firing { animation: hop-pulse 420ms ease-out; }
+  @keyframes hop-pulse {
+    0% { box-shadow: 0 0 0 0 var(--lime-edge); }
+    100% { box-shadow: 0 0 0 12px transparent; }
+  }
   .zaps { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
   .zaps .glow { fill: none; stroke: var(--lime-edge); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: 0.45; }
   .zaps .bolt { fill: none; stroke: var(--accent-text); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: miter; }
   .belt {
-    margin-top: 112px;
+    margin-top: 88px;
     overflow: hidden;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
             mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
@@ -156,11 +172,12 @@
   .belt-track .mark { flex: none; width: 32px; height: 32px; border-radius: 8px; background: var(--tile); display: grid; place-items: center; overflow: hidden; }
   .belt-track img { width: 22px; height: 22px; object-fit: contain; }
   .router + .benefits { margin-top: 56px; }
-  @media (max-width: 860px) { .belt { margin-top: 88px; } }
+  @media (max-width: 860px) { .hop { margin-top: 52px; } .belt { margin-top: 72px; } }
   @media (prefers-reduced-motion: reduce) {
     .belt-track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; }
     .belt-track li[aria-hidden="true"] { display: none; }
     .belt { -webkit-mask-image: none; mask-image: none; margin-top: 32px; }
+    .hop { margin-top: 24px; }
   }
 
   /* benefits */
@@ -234,13 +251,14 @@
     <div class="section-head easy">
       <h2 id="easy-h">WebRouter makes it easy</h2>
     </div>
-    <figure class="router" id="router" aria-label="Your agent sends each request through WebRouter to the best web search provider or public data API">
+    <figure class="router" id="router" aria-label="Your agent sends each request to WebRouter, which routes it to the best web search provider or public data API">
       <div class="agent" id="agent">
         <span class="agent-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><circle cx="12" cy="2.6" r="0.9" fill="currentColor"/><rect x="4" y="6" width="16" height="12" rx="4"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><path d="M2 11v3M22 11v3M9.5 21h5"/></svg>
         </span>
         Your agent
       </div>
+      <div class="hop" id="hop" aria-hidden="true">web<span>/</span>router</div>
       <svg class="zaps" id="zaps" aria-hidden="true"></svg>
       <div class="belt"><ul class="belt-track" id="belt"></ul></div>
     </figure>
@@ -311,6 +329,7 @@
     const belt = document.getElementById("belt");
     const router = document.getElementById("router");
     const agent = document.getElementById("agent");
+    const hop = document.getElementById("hop");
     const zaps = document.getElementById("zaps");
     const NS = "http://www.w3.org/2000/svg";
 
@@ -343,37 +362,34 @@
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    function fire() {
-      const tile = pick();
-      if (!tile) return;
-      lastHit.set(tile, performance.now());
-      // fixed jitter per bolt, so it keeps its shape while it tracks the moving tile
-      const jitter = Array.from({ length: 5 }, (_, i) => (i % 2 ? 1 : -1) * (9 + Math.random() * 12));
-      const glow = document.createElementNS(NS, "polyline");
-      const bolt = document.createElementNS(NS, "polyline");
-      glow.setAttribute("class", "glow");
-      bolt.setAttribute("class", "bolt");
-      zaps.append(glow, bolt);
-      agent.classList.remove("firing"); void agent.offsetWidth; agent.classList.add("firing");
+    const pulse = (el) => { el.classList.remove("firing"); void el.offsetWidth; el.classList.add("firing"); };
 
-      const DRAW = 260, HOLD = 160, FADE = 320, t0 = performance.now();
+    // one jagged bolt from `from`'s bottom edge to `to`'s top edge, drawn over `draw` ms
+    function bolt(from, to, draw, onStrike) {
+      const jitter = Array.from({ length: 4 }, (_, i) => (i % 2 ? 1 : -1) * (7 + Math.random() * 10));
+      const glow = document.createElementNS(NS, "polyline");
+      const line = document.createElementNS(NS, "polyline");
+      glow.setAttribute("class", "glow");
+      line.setAttribute("class", "bolt");
+      zaps.append(glow, line);
+      const HOLD = 200, FADE = 320, t0 = performance.now();
       let struck = false;
       (function frame(now) {
         const base = router.getBoundingClientRect();
-        const a = agent.getBoundingClientRect(), b = tile.getBoundingClientRect();
+        const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
         const x0 = a.left + a.width / 2 - base.left, y0 = a.bottom - base.top;
         const x1 = b.left + b.width / 2 - base.left, y1 = b.top - base.top;
+        const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1;
         const n = jitter.length + 1;
         const pts = [[x0, y0]];
         for (let i = 1; i < n; i++) {
           const f = i / n;
-          const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1;
           pts.push([x0 + dx * f + (-dy / len) * jitter[i - 1], y0 + dy * f + (dx / len) * jitter[i - 1]]);
         }
         pts.push([x1, y1]);
         const el = now - t0;
-        const k = Math.min(1, el / DRAW);
-        // reveal the bolt from the agent downward
+        const k = Math.min(1, el / draw);
+        // reveal from the source toward the target
         const shown = [pts[0]];
         const segs = pts.length - 1, reach = k * segs;
         for (let i = 1; i <= segs; i++) {
@@ -386,20 +402,31 @@
         }
         const attr = shown.map((p) => p.join(",")).join(" ");
         glow.setAttribute("points", attr);
-        bolt.setAttribute("points", attr);
-        if (k === 1 && !struck) {
-          struck = true;
-          tile.classList.add("hit");
-          setTimeout(() => tile.classList.remove("hit"), 650);
-        }
-        const fade = Math.max(0, el - DRAW - HOLD) / FADE;
+        line.setAttribute("points", attr);
+        if (k === 1 && !struck) { struck = true; onStrike && onStrike(); }
+        const fade = Math.max(0, el - draw - HOLD) / FADE;
         glow.style.opacity = 0.45 * (1 - fade);
-        bolt.style.opacity = 1 - fade;
+        line.style.opacity = 1 - fade;
         if (fade < 1) requestAnimationFrame(frame);
-        else { glow.remove(); bolt.remove(); }
+        else { glow.remove(); line.remove(); }
       })(t0);
     }
 
-    setInterval(() => { if (visible && !document.hidden) fire(); }, 850);
+    function fire() {
+      const tile = pick();
+      if (!tile) return;
+      lastHit.set(tile, performance.now());
+      pulse(agent);
+      // agent → WebRouter, then WebRouter → the tool it picked
+      bolt(agent, hop, 170, () => {
+        pulse(hop);
+        bolt(hop, tile, 230, () => {
+          tile.classList.add("hit");
+          setTimeout(() => tile.classList.remove("hit"), 650);
+        });
+      });
+    }
+
+    setInterval(() => { if (visible && !document.hidden) fire(); }, 950);
   })();
 </script>
